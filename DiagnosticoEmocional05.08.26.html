@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- 🔗 PRÉVIA DO LINK NO WHATSAPP -->
+    <meta property="og:title" content="🧠 Diagnóstico Emocional — Como você lida com suas emoções?">
+    <meta property="og:description" content="Descubra em 3 minutos como estão sua Raiva, Medo, Tristeza e Alegria. Questionário gratuito com resultado personalizado.">
+    <meta property="og:image" content="https://cdn-icons-png.flaticon.com/512/4328/4328441.png">
+    <meta property="og:url" content="https://shimmering-daifuku-f2e5b4.netlify.app/">
+    <meta property="og:type" content="website">
+
+    <title>🧠 Diagnóstico Emocional — Como você lida com suas emoções?</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin: 20px 0;
+        }
+
+        h1 { color: #333; margin-bottom: 10px; text-align: center; }
+
+        .subtitulo {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .tela-inicial { text-align: center; padding: 40px 20px; }
+        .tela-inicial h2 { color: #333; margin-bottom: 20px; font-size: 24px; }
+        .tela-inicial p { color: #666; margin-bottom: 30px; line-height: 1.6; }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group { display: flex; flex-direction: column; }
+        .form-group.full-width { grid-column: 1 / -1; }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 5px;
+        }
+
+        .form-group label .asterisco { color: #dc3545; }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea { resize: vertical; min-height: 60px; }
+
+        .pergunta {
+            margin-bottom: 25px; padding: 20px; background: #f8f9fa;
+            border-radius: 10px; border-left: 4px solid #667eea;
+        }
+        .pergunta h3 { color: #444; margin-bottom: 15px; font-size: 15px; line-height: 1.5; }
+
+        .opcoes { display: flex; flex-direction: column; gap: 8px; }
+
+        label.opcao-label {
+            display: flex; align-items: center; padding: 10px 12px;
+            background: white; border: 2px solid #e0e0e0; border-radius: 8px;
+            cursor: pointer; transition: all 0.2s; font-size: 14px;
+        }
+        label.opcao-label:hover { border-color: #667eea; background: #f0f4ff; }
+        input[type="radio"] { margin-right: 10px; accent-color: #667eea; }
+
+        button {
+            width: 100%; padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; border: none; border-radius: 8px;
+            font-size: 16px; font-weight: bold; cursor: pointer;
+            margin-top: 20px; transition: transform 0.2s;
+        }
+        button:hover { transform: translateY(-2px); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        #resultado { margin-top: 30px; display: none; }
+
+        .resultado-header {
+            text-align: center; margin-bottom: 25px; padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; border-radius: 10px;
+        }
+        .resultado-header h2 { font-size: 24px; margin-bottom: 5px; }
+        .resultado-header p { font-size: 14px; opacity: 0.9; }
+
+        .grafico-container {
+            background: #f8f9fa; padding: 30px 25px 25px;
+            border-radius: 10px; margin-bottom: 25px;
+        }
+
+        .diagnosticos { display: grid; gap: 15px; }
+
+        .diagnostico {
+            padding: 20px; border-radius: 10px; border-left: 5px solid;
+        }
+        .diagnostico h3 { margin-bottom: 8px; font-size: 18px; }
+        .diagnostico .pontos { font-size: 14px; font-weight: bold; margin-bottom: 10px; opacity: 0.8; }
+        .diagnostico p { line-height: 1.5; font-size: 14px; }
+
+        .nivel-saudavel { background: #d4edda; border-color: #28a745; color: #155724; }
+        .nivel-atencao { background: #fff3cd; border-color: #ffc107; color: #856404; }
+        .nivel-alerta { background: #f8d7da; border-color: #dc3545; color: #721c24; }
+
+        .legenda {
+            display: flex; justify-content: center; gap: 20px;
+            flex-wrap: wrap; margin-top: 20px; font-size: 13px;
+        }
+        .legenda-item { display: flex; align-items: center; gap: 6px; font-weight: 500; }
+        .legenda-cor { width: 14px; height: 14px; border-radius: 3px; }
+
+        .botoes-acao {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 25px;
+        }
+        .btn-pdf { background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); }
+        .btn-indicar { background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%); }
+
+        .secao-consulta {
+            margin-top: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            color: white;
+            text-align: center;
+        }
+
+        .secao-consulta h3 { font-size: 22px; margin-bottom: 10px; }
+
+        .secao-consulta p {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            opacity: 0.95;
+        }
+
+        .secao-consulta .destaque {
+            font-size: 16px;
+            font-weight: bold;
+            background: rgba(255,255,255,0.15);
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .btn-consulta {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            max-width: 350px;
+            margin: 0 auto;
+            font-size: 18px;
+            padding: 16px;
+        }
+
+        .hidden { display: none; }
+
+        @media (max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .botoes-acao { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="telaInicial" class="tela-inicial">
+            <h1>🧠 Diagnóstico Emocional</h1>
+            <h2>Bem-vindo(a)!</h2>
+            <p>
+                Este questionário avalia como você lida com as 4 emoções primárias.<br>
+                Responda com sinceridade, pensando em como você age ou sente na maioria das vezes.
+            </p>
+
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label for="nomePaciente">Nome e Sobrenome <span class="asterisco">*</span></label>
+                    <input type="text" id="nomePaciente" placeholder="Ex: Maria Silva" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="idade">Idade <span class="asterisco">*</span></label>
+                    <select id="idade" required>
+                        <option value="">Selecione</option>
+                        <option value="18-25">18 a 25 anos</option>
+                        <option value="26-35">26 a 35 anos</option>
+                        <option value="36-45">36 a 45 anos</option>
+                        <option value="46-55">46 a 55 anos</option>
+                        <option value="56+">56 anos ou mais</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="genero">Gênero <span class="asterisco">*</span></label>
+                    <select id="genero" required>
+                        <option value="">Selecione</option>
+                        <option value="Masculino">Masculino</option>
+                        <option value="Feminino">Feminino</option>
+                        <option value="Outro">Outro</option>
+                        <option value="Prefiro não dizer">Prefiro não dizer</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="escolaridade">Escolaridade <span class="asterisco">*</span></label>
+                    <select id="escolaridade" required>
+                        <option value="">Selecione</option>
+                        <option value="Fundamental incompleto">Fundamental incompleto</option>
+                        <option value="Fundamental completo">Fundamental completo</option>
+                        <option value="Médio incompleto">Médio incompleto</option>
+                        <option value="Médio completo">Médio completo</option>
+                        <option value="Superior incompleto">Superior incompleto</option>
+                        <option value="Superior completo">Superior completo</option>
+                        <option value="Pós-graduação/MBA">Pós-graduação / MBA</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="ocupacao">Ocupação profissional <span class="asterisco">*</span></label>
+                    <select id="ocupacao" required>
+                        <option value="">Selecione</option>
+                        <option value="CLT">CLT</option>
+                        <option value="Autônomo">Autônomo</option>
+                        <option value="Empresário">Empresário</option>
+                        <option value="Servidor público">Servidor público</option>
+                        <option value="Aposentado">Aposentado</option>
+                        <option value="Desempregado">Desempregado</option>
+                        <option value="Estudante">Estudante</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="cidade">Cidade / Estado <span class="asterisco">*</span></label>
+                    <input type="text" id="cidade" placeholder="Ex: Aracaju/SE" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="canal">Como nos conheceu? <span class="asterisco">*</span></label>
+                    <select id="canal" required>
+                        <option value="">Selecione</option>
+                        <option value="Instagram">Instagram</option>
+                        <option value="Facebook">Facebook</option>
+                        <option value="Indicação">Indicação</option>
+                        <option value="Google">Google</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="motivacao">O que te trouxe até aqui? <span class="asterisco">*</span></label>
+                    <textarea id="motivacao" placeholder="Conte brevemente o que te motivou a fazer este diagnóstico..." required></textarea>
+                </div>
+            </div>
+
+            <button onclick="iniciarQuiz()">Começar Questionário</button>
+        </div>
+
+        <div id="quizContainer" class="hidden">
+            <h1>🧠 Diagnóstico Emocional</h1>
+            <p class="subtitulo">
+                Para cada situação, indique com que frequência você age ou sente da forma descrita.<br>
+                Não existe resposta certa ou errada — apenas a sua verdade.
+            </p>
+            <div id="quiz"></div>
+            <button onclick="calcular()">Ver Meu Resultado</button>
+        </div>
+
+        <div id="resultado">
+            <div class="resultado-header">
+                <h2 id="nomeResultado"></h2>
+                <p>Seu diagnóstico emocional completo</p>
+            </div>
+
+            <div id="conteudoPDF">
+                <div class="grafico-container">
+                    <canvas id="grafico"></canvas>
+                    <div class="legenda">
+                        <div class="legenda-item"><div class="legenda-cor" style="background:#28a745"></div>Saudável (70-100%)</div>
+                        <div class="legenda-item"><div class="legenda-cor" style="background:#ffc107"></div>Atenção (40-69%)</div>
+                        <div class="legenda-item"><div class="legenda-cor" style="background:#dc3545"></div>Alerta (0-39%)</div>
+                    </div>
+                </div>
+                <div class="diagnosticos" id="diagnosticos"></div>
+            </div>
+
+            <div class="botoes-acao">
+                <button class="btn-pdf" onclick="exportarPDF()">📄 Baixar em PDF</button>
+                <button class="btn-indicar" onclick="indicarAmigos()">🔗 Indicar para amigos</button>
+            </div>
+
+            <div class="secao-consulta" id="secaoConsulta">
+                <h3>🎉 Parabéns!</h3>
+                <p>Você acaba de ganhar uma <strong>consulta gratuita</strong> com um especialista que vai te ajudar a entender e trabalhar suas emoções com base no seu diagnóstico.</p>
+                <div class="destaque">Clique no botão abaixo e fale diretamente com um especialista!</div>
+                <button class="btn-consulta" onclick="solicitarConsulta()">📞 Quero minha consulta gratuita</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const NUMERO_WHATSAPP_ADMIN = "5579999564639";
+        const LINK_DO_QUESTIONARIO = "https://shimmering-daifuku-f2e5b4.netlify.app/";
+
+        let dadosCliente = {};
+        let nomePaciente = '';
+        let pontuacoesFinais = {};
+
+        const perguntas = [
+            { emocao: "raiva", polaridade: "negativa", texto: "No trânsito, quando alguém te fecha sem sinalizar, você fica remoendo raiva por muito tempo?" },
+            { emocao: "medo", polaridade: "negativa", texto: "Você evita abrir mensagens ou e-mails de remetentes que não conhece, com medo do conteúdo?" },
+            { emocao: "tristeza", polaridade: "negativa", texto: "Num domingo chuvoso, sozinho em casa e sem planos, você se sente vazio ou sem propósito?" },
+            { emocao: "alegria", polaridade: "positiva", texto: "Quando algo muito bom acontece de surpresa, você se permite comemorar e aproveitar o momento?" },
+
+            { emocao: "raiva", polaridade: "negativa", texto: "No trabalho ou em grupo, quando alguém te interrompe repetidamente enquanto você fala, você sente vontade de explodir?" },
+            { emocao: "medo", polaridade: "negativa", texto: "Você sente um sintoma físico diferente e já começa a pesquisar doenças graves na internet?" },
+            { emocao: "tristeza", polaridade: "negativa", texto: "Ao se lembrar de algo ou alguém que perdeu, você fica dias mergulhado nessa tristeza?" },
+            { emocao: "alegria", polaridade: "positiva", texto: "Quando recebe um elogio sincero, você aceita e se sente genuinamente bem com isso?" },
+
+            { emocao: "raiva", polaridade: "negativa", texto: "Quando um superior ou chefe te dá uma crítica, você fica remoendo raiva por dias?" },
+            { emocao: "medo", polaridade: "negativa", texto: "Ao precisar se apresentar ou falar em público, você sente um medo tão forte que pensa em fugir da situação?" },
+            { emocao: "tristeza", polaridade: "negativa", texto: "Ao rolar as redes sociais e se deparar com notícias tristes ou pesadas, você fica deprimido e não consegue se recuperar rápido?" },
+            { emocao: "alegria", polaridade: "positiva", texto: "Num dia completamente livre, você consegue relaxar e curtir sem sentir culpa por não estar produzindo?" },
+
+            { emocao: "raiva", polaridade: "negativa", texto: "Quando algo importante dá errado por falha de outra pessoa, você desconta sua raiva em objetos ou nos outros?" },
+            { emocao: "medo", polaridade: "negativa", texto: "Ao pensar na sua situação financeira daqui a alguns anos, você sente um medo que te paralisa?" },
+            { emocao: "tristeza", polaridade: "negativa", texto: "Rolando o feed, ao ver fotos de momentos felizes do passado, você se afunda na ideia de que sua vida era melhor antes?" },
+            { emocao: "alegria", polaridade: "positiva", texto: "Quando conquista algo que batalhou muito, você sente orgulho genuíno de si mesmo?" },
+
+            { emocao: "raiva", polaridade: "negativa", texto: "Depois de um dia exaustivo, quando seu chefe te pede mais uma tarefa, você aceita mas fica remoendo raiva e ressentimento por horas?" },
+            { emocao: "medo", polaridade: "negativa", texto: "Quando alguém importante não responde suas mensagens por algumas horas, sua mente já imagina que algo grave aconteceu?" },
+            { emocao: "tristeza", polaridade: "negativa", texto: "Após o término de uma relação ou amizade importante, você sente que sua vida perdeu completamente o sentido?" },
+            { emocao: "alegria", polaridade: "positiva", texto: "Em momentos especiais com pessoas queridas, você se entrega totalmente e vive o presente?" }
+        ];
+
+        const alternativas = [
+            { texto: "Sempre",         valorNeg: 0,   valorPos: 100 },
+            { texto: "Frequentemente", valorNeg: 33,  valorPos: 67  },
+            { texto: "Raramente",      valorNeg: 67,  valorPos: 33  },
+            { texto: "Nunca",          valorNeg: 100, valorPos: 0   }
+        ];
+
+        const diagnosticos = {
+            raiva: {
+                saudavel: { min: 70, titulo: "\u2705 Raiva bem elaborada", mensagem: "Você lida muito bem com a raiva. Sabe sentir sem explodir, expressa o que incomoda sem guardar rancor. A raiva é combustível, não veneno." },
+                atencao:  { min: 40, titulo: "\u26A0\uFE0F Raiva pedindo atenção", mensagem: "A raiva está pedindo atenção. Você oscila entre engolir o que sente e explodir na hora errada. Vale trabalhar canais de expressão mais saudáveis." },
+                alerta:   { min: 0,  titulo: "\uD83D\uDEA8 Raiva descontrolada", mensagem: "A raiva está dominando suas reações e relações. Explosões, ressentimentos ou agressividade indicam a necessidade urgente de buscar ajuda profissional." }
+            },
+            medo: {
+                saudavel: { min: 70, titulo: "\u2705 Medo sob controle", mensagem: "Seu medo está sob controle. Você avalia riscos reais sem catastrofizar e consegue seguir em frente mesmo diante de incertezas." },
+                atencao:  { min: 40, titulo: "\u26A0\uFE0F Medo pedindo atenção", mensagem: "O medo está começando a limitar suas escolhas. Ansiedade antecipatória e evitações pontuais indicam que essa emoção merece um olhar mais cuidadoso." },
+                alerta:   { min: 0,  titulo: "\uD83D\uDEA8 Medo paralisante", mensagem: "O medo está paralisando sua vida. Evitações constantes, pânico e pensamentos catastróficos exigem intervenção profissional urgente." }
+            },
+            tristeza: {
+                saudavel: { min: 70, titulo: "\u2705 Tristeza bem elaborada", mensagem: "Você processa a tristeza de forma saudável. Sente a dor, elabora o luto e segue em frente sem se afogar na melancolia." },
+                atencao:  { min: 40, titulo: "\u26A0\uFE0F Tristeza pedindo atenção", mensagem: "A tristeza está durando mais do que deveria. Você demora a se recuperar e ruminar pensamentos tristes está se tornando um padrão." },
+                alerta:   { min: 0,  titulo: "\uD83D\uDEA8 Tristeza avassaladora", mensagem: "A tristeza tomou conta. Sinais depressivos, perda de sentido e dificuldade de funcionar no dia a dia indicam a necessidade urgente de ajuda profissional." }
+            },
+            alegria: {
+                saudavel: { min: 70, titulo: "\u2705 Alegria fluindo", mensagem: "Você se permite sentir alegria! Celebra conquistas, aproveita o presente e não sabota os momentos bons com culpa ou desconfiança." },
+                atencao:  { min: 40, titulo: "\u26A0\uFE0F Alegria bloqueada", mensagem: "A alegria está bloqueada. Culpa, desconfiança ou a sensação de 'não merecer' estão roubando sua capacidade de curtir os bons momentos." },
+                alerta:   { min: 0,  titulo: "\uD83D\uDEA8 Alegria ausente", mensagem: "Você não consegue mais sentir alegria genuína. A anedonia é um sinal importante que precisa ser investigado com um profissional." }
+            }
+        };
+
+        const quizDiv = document.getElementById('quiz');
+        perguntas.forEach((pergunta, index) => {
+            const div = document.createElement('div');
+            div.className = 'pergunta';
+            div.innerHTML = `
+                <h3>${index + 1}. ${pergunta.texto}</h3>
+                <div class="opcoes">
+                    ${alternativas.map((alt, i) => `
+                        <label class="opcao-label">
+                            <input type="radio" name="pergunta${index}" value="${alt.valorNeg}|${alt.valorPos}" data-polaridade="${pergunta.polaridade}" required>
+                            ${alt.texto}
+                        </label>
+                    `).join('')}
+                </div>
+            `;
+            quizDiv.appendChild(div);
+        });
+
+        function iniciarQuiz() {
+            const nome = document.getElementById('nomePaciente').value.trim();
+            const idade = document.getElementById('idade').value;
+            const genero = document.getElementById('genero').value;
+            const escolaridade = document.getElementById('escolaridade').value;
+            const ocupacao = document.getElementById('ocupacao').value;
+            const cidade = document.getElementById('cidade').value.trim();
+            const canal = document.getElementById('canal').value;
+            const motivacao = document.getElementById('motivacao').value.trim();
+
+            // Valida nome e sobrenome (mínimo 2 palavras)
+            if (!nome) {
+                alert('Por favor, preencha seu Nome e Sobrenome!');
+                return;
+            }
+            const palavras = nome.split(' ').filter(p => p.length > 0);
+            if (palavras.length < 2) {
+                alert('Por favor, informe Nome e Sobrenome (mínimo dois nomes)!');
+                return;
+            }
+
+            if (!idade || !genero || !escolaridade || !ocupacao || !cidade || !canal || !motivacao) {
+                alert('Por favor, preencha todos os campos obrigatórios (*) antes de começar!');
+                return;
+            }
+
+            dadosCliente = { nome, idade, genero, escolaridade, ocupacao, cidade, canal, motivacao };
+            nomePaciente = nome;
+
+            document.getElementById('telaInicial').classList.add('hidden');
+            document.getElementById('quizContainer').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function calcular() {
+            const somaPercentual = { raiva: 0, medo: 0, tristeza: 0, alegria: 0 };
+            const contagem = { raiva: 0, medo: 0, tristeza: 0, alegria: 0 };
+            let todasRespondidas = true;
+
+            perguntas.forEach((pergunta, index) => {
+                const selecionada = document.querySelector(`input[name="pergunta${index}"]:checked`);
+                if (selecionada) {
+                    const [valorNeg, valorPos] = selecionada.value.split('|').map(Number);
+                    const percentual = pergunta.polaridade === 'negativa' ? valorNeg : valorPos;
+                    somaPercentual[pergunta.emocao] += percentual;
+                    contagem[pergunta.emocao]++;
+                } else {
+                    todasRespondidas = false;
+                }
+            });
+
+            if (!todasRespondidas) {
+                alert('Responda todas as 20 perguntas antes de ver o resultado!');
+                return;
+            }
+
+            pontuacoesFinais = {};
+            for (const emocao of ['raiva', 'medo', 'tristeza', 'alegria']) {
+                pontuacoesFinais[emocao] = Math.round(somaPercentual[emocao] / contagem[emocao]);
+            }
+
+            document.getElementById('nomeResultado').textContent = `Resultado de ${nomePaciente}`;
+            document.getElementById('quizContainer').classList.add('hidden');
+            document.getElementById('resultado').style.display = 'block';
+
+            criarGrafico(pontuacoesFinais);
+            criarDiagnosticos(pontuacoesFinais);
+            document.getElementById('resultado').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function getCorBarra(percentual) {
+            if (percentual >= 70) return '#28a745';
+            if (percentual >= 40) return '#ffc107';
+            return '#dc3545';
+        }
+
+        function criarGrafico(pontuacoes) {
+            const ctx = document.getElementById('grafico').getContext('2d');
+            if (window.graficoInstance) window.graficoInstance.destroy();
+
+            const emocoes = ['raiva', 'medo', 'tristeza', 'alegria'];
+            const labels = ['RAIVA', 'MEDO', 'TRISTEZA', 'ALEGRIA'];
+            const dados = emocoes.map(e => pontuacoes[e]);
+            const cores = dados.map(p => getCorBarra(p));
+
+            window.graficoInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Pontuação (%)',
+                        data: dados,
+                        backgroundColor: cores,
+                        borderColor: cores,
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        barThickness: 50
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    animation: { duration: 500 },
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            min: 0, max: 100,
+                            ticks: { stepSize: 10, callback: v => v + '%', font: { size: 12 } },
+                            grid: { color: '#e0e0e0' }
+                        },
+                        x: {
+                            ticks: { font: { size: 13, weight: 'bold' }, color: '#333' },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        function criarDiagnosticos(pontuacoes) {
+            const container = document.getElementById('diagnosticos');
+            container.innerHTML = '';
+
+            const emocoes = ['raiva', 'medo', 'tristeza', 'alegria'];
+            const nomes = { raiva: '\uD83D\uDD25 Raiva', medo: '\uD83D\uDE28 Medo', tristeza: '\uD83D\uDCA7 Tristeza', alegria: '\u2728 Alegria' };
+
+            emocoes.forEach(emocao => {
+                const pontos = pontuacoes[emocao];
+                const diag = diagnosticos[emocao];
+                let nivel;
+
+                if (pontos >= diag.saudavel.min) nivel = { classe: 'nivel-saudavel', ...diag.saudavel };
+                else if (pontos >= diag.atencao.min) nivel = { classe: 'nivel-atencao', ...diag.atencao };
+                else nivel = { classe: 'nivel-alerta', ...diag.alerta };
+
+                const div = document.createElement('div');
+                div.className = `diagnostico ${nivel.classe}`;
+                div.innerHTML = `
+                    <h3>${nomes[emocao]} — ${nivel.titulo}</h3>
+                    <div class="pontos">Saúde emocional: ${pontos}%</div>
+                    <p>${nivel.mensagem}</p>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        async function exportarPDF() {
+            const { jsPDF } = window.jspdf;
+            const elemento = document.getElementById('conteudoPDF');
+
+            const btnPDF = document.querySelector('.btn-pdf');
+            const textoOriginal = btnPDF.textContent;
+            btnPDF.textContent = 'Gerando PDF...';
+            btnPDF.disabled = true;
+
+            try {
+                const canvas = await html2canvas(elemento, {
+                    scale: 2,
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    useCORS: true
+                });
+
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const larguraPDF = pdf.internal.pageSize.getWidth();
+                const alturaPDF = pdf.internal.pageSize.getHeight();
+
+                const larguraImg = larguraPDF - 20;
+                const alturaImgOriginal = (canvas.height * larguraImg) / canvas.width;
+
+                pdf.setFontSize(18);
+                pdf.setFont(undefined, 'bold');
+                pdf.text(`Diagn\u00f3stico Emocional - ${nomePaciente}`, 10, 15);
+
+                pdf.setFontSize(10);
+                pdf.setFont(undefined, 'normal');
+                pdf.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 10, 22);
+
+                const alturaDisponivel = alturaPDF - 30;
+                let larguraFinal = larguraImg;
+                let alturaFinal = alturaImgOriginal;
+
+                if (alturaImgOriginal > alturaDisponivel) {
+                    const escala = alturaDisponivel / alturaImgOriginal;
+                    larguraFinal = larguraImg * escala;
+                    alturaFinal = alturaDisponivel;
+                }
+
+                const xFinal = 10 + (larguraImg - larguraFinal) / 2;
+                pdf.addImage(imgData, 'PNG', xFinal, 28, larguraFinal, alturaFinal);
+
+                pdf.save(`diagnostico-emocional-${nomePaciente.replace(/\s+/g, '-').toLowerCase()}.pdf`);
+
+                btnPDF.textContent = textoOriginal;
+                btnPDF.disabled = false;
+            } catch (error) {
+                console.error('Erro ao gerar PDF:', error);
+                alert('Erro ao gerar PDF. Tente novamente.');
+                btnPDF.textContent = textoOriginal;
+                btnPDF.disabled = false;
+            }
+        }
+
+        function indicarAmigos() {
+            let mensagem = `Acabei de fazer um *Diagnóstico Emocional* gratuito e descobri como lido com minhas 4 emoções primárias! 🧠\n\n`;
+            mensagem += `É rápido, gratuito e te dá um panorama completo sobre Raiva, Medo, Tristeza e Alegria.\n\n`;
+            mensagem += `Faz também! 👇\n`;
+            mensagem += `${LINK_DO_QUESTIONARIO}`;
+
+            window.open(`https://wa.me/?text=${encodeURIComponent(mensagem)}`, '_blank');
+        }
+
+        function solicitarConsulta() {
+            const emocoes = ['raiva', 'medo', 'tristeza', 'alegria'];
+            const nomes = { raiva: 'Raiva', medo: 'Medo', tristeza: 'Tristeza', alegria: 'Alegria' };
+
+            let mensagem = `🧠 *DIAGNÓSTICO EMOCIONAL*\n\n`;
+            mensagem += `*📋 DADOS DO CLIENTE:*\n`;
+            mensagem += `Nome: ${dadosCliente.nome}\n`;
+            mensagem += `Idade: ${dadosCliente.idade}\n`;
+            mensagem += `Gênero: ${dadosCliente.genero}\n`;
+            mensagem += `Escolaridade: ${dadosCliente.escolaridade}\n`;
+            mensagem += `Ocupação: ${dadosCliente.ocupacao}\n`;
+            mensagem += `Cidade: ${dadosCliente.cidade}\n`;
+            mensagem += `Canal: ${dadosCliente.canal}\n`;
+            mensagem += `Motivação: ${dadosCliente.motivacao}\n`;
+            mensagem += `\n*📊 RESULTADOS DO DIAGNÓSTICO:*\n`;
+
+            emocoes.forEach(emocao => {
+                const pontos = pontuacoesFinais[emocao];
+                const diag = diagnosticos[emocao];
+                let nivel;
+
+                if (pontos >= diag.saudavel.min) nivel = diag.saudavel;
+                else if (pontos >= diag.atencao.min) nivel = diag.atencao;
+                else nivel = diag.alerta;
+
+                mensagem += `\n${nomes[emocao]}: ${pontos}%\n`;
+                mensagem += `${nivel.titulo}\n`;
+            });
+
+            mensagem += `\n_Data: ${new Date().toLocaleDateString('pt-BR')}_`;
+            mensagem += `\n\n_Solicitou consulta gratuita_ 📞`;
+
+            window.open(`https://wa.me/${NUMERO_WHATSAPP_ADMIN}?text=${encodeURIComponent(mensagem)}`, '_blank');
+        }
+    </script>
+</body>
+</html>
